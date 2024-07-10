@@ -1,0 +1,95 @@
+import {
+  Box,
+  CircularProgress,
+  SpeedDial,
+  SpeedDialIcon,
+  Typography,
+} from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { setCreateModal } from "../../slice/jobSlice";
+import JobModal from "../../components/JobModal";
+import JobItem from "../../components/JobItem";
+import JobAppliedModal from "../../components/jobAppliedModal";
+import DetailCVmodal from "../../components/detailCVmodal";
+import { useEffect, useState } from "react";
+import { jobApi } from "../../utils/api/jobApi";
+
+const Popup = () => {
+  const dispatch = useDispatch();
+ 
+
+  const handleCreateJob = () => {
+    dispatch(setCreateModal({ show: true }));
+  };
+  return (
+    <Box
+      sx={{
+        height: "80%",
+        width: "100%",
+      }}
+    >
+      <SpeedDial
+        onClick={handleCreateJob}
+        ariaLabel="SpeedDial basic example"
+        sx={{ position: "absolute", bottom: 16, right: 16 }}
+        icon={<SpeedDialIcon />}
+      />
+      <JobModal />
+    </Box>
+  );
+};
+
+const Jobs = () => {
+const [jobs, setJobs] = useState([])
+  const open = useSelector((state) => state.job.createModal.show);
+
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await jobApi.getJobs()
+      setJobs(res)
+    } catch (error) {
+      console.log(error)
+      
+    }
+  }
+  fetchData()
+  }, [open])
+  const isLoading = false;
+
+  return isLoading ? (
+    <Box display={"flex"} sx={{ m: "0 auto", justifyContent: "center" }}>
+      <CircularProgress color="error" />
+    </Box>
+  ) : (
+    <Box
+      p={3}
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        gap: 3,
+        flexGrow: 1,
+        flexWrap: "wrap",
+      }}
+    >
+      {!isLoading &&
+        (jobs?.length ? (
+          jobs?.map((job) => <JobItem key={job._id} {...job} />)
+        ) : (
+          <Typography
+            textAlign={"center"}
+            sx={{ mx: "auto", fontStyle: "italic" }}
+            variant="caption"
+          >
+            Chưa có công việc
+          </Typography>
+        ))}
+
+      <Popup />
+      <JobAppliedModal />
+      <DetailCVmodal />
+    </Box>
+  );
+};
+
+export default Jobs;
